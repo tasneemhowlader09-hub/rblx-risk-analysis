@@ -49,11 +49,17 @@ def max_drawdown(prices: pd.Series) -> pd.Series:
 
 
 def summarise(returns: pd.Series, prices: pd.Series, bench_returns: pd.Series) -> dict:
-    ann_ret = (1 + returns.mean()) ** TRADING_DAYS - 1
+    years = len(returns) / TRADING_DAYS
+    # CAGR: the return you would actually have earned, from real start/end prices
+    cagr = (prices.iloc[-1] / prices.iloc[0]) ** (1 / years) - 1
+    # Arithmetic average annual return: used for the Sharpe ratio. It ignores
+    # volatility drag, so for very volatile stocks it is HIGHER than CAGR.
+    ann_ret = returns.mean() * TRADING_DAYS
     ann_vol = returns.std() * np.sqrt(TRADING_DAYS)
     beta = returns.cov(bench_returns) / bench_returns.var()
     return {
-        "Annualised return": ann_ret,
+        "CAGR (compound return)": cagr,
+        "Avg annual return (arith.)": ann_ret,
         "Annualised volatility": ann_vol,
         "Sharpe ratio": (ann_ret - RISK_FREE) / ann_vol,
         "Beta vs S&P 500": beta,
@@ -93,4 +99,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main() 
